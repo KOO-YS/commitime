@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/clover_logo.dart';
 import '../utils/constants.dart';
+import '../services/notification_service.dart';
 
 /// 스플래시 화면
 class SplashScreen extends StatefulWidget {
@@ -51,12 +52,19 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // 2.5초 후 메인 화면으로 이동
-    Future.delayed(const Duration(milliseconds: 2500), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/main');
-      }
-    });
+    // 권한 요청 및 메인 화면으로 이동
+    _initializeAndNavigate();
+  }
+
+  Future<void> _initializeAndNavigate() async {
+    // 알림 권한 요청
+    await NotificationService().requestPermissions();
+
+    // 최소 2.5초 대기 후 메인 화면으로 이동
+    await Future.delayed(const Duration(milliseconds: 2500));
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed('/main');
+    }
   }
 
   @override

@@ -188,35 +188,87 @@ class NotificationService {
     );
   }
 
+  /// N분 후 예약 알람 (테스트용)
+  /// 앱이 꺼져있어도 설정된 시간에 알람이 울립니다.
+  Future<void> scheduleTestNotification({
+    required int minutesFromNow,
+    required String title,
+    required String body,
+  }) async {
+    final scheduledTime = tz.TZDateTime.now(tz.local).add(
+      Duration(minutes: minutesFromNow),
+    );
+
+    await _notifications.zonedSchedule(
+      999999, // 테스트용 고정 ID
+      title,
+      body,
+      scheduledTime,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'scheduled_test_channel',
+          '예약 알림 테스트',
+          channelDescription: '예약된 알림 테스트',
+          importance: Importance.max,
+          priority: Priority.max,
+          playSound: true,
+          enableVibration: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
   /// 알림 ID 생성 (goalId + 요일 + 리마인더 여부 조합)
   int _generateNotificationId(String goalId, int day, bool isReminder) {
     final hash = goalId.hashCode.abs();
     return hash * 100 + day * 10 + (isReminder ? 1 : 0);
   }
 
-  /// 다음 특정 요일/시간 계산
+  /// 다음 특정 요일/시간 계산 (가장 가까운 미래 시점)
   tz.TZDateTime _nextInstanceOfWeekdayTime(int weekday, int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(
+
+    // 오늘부터 7일간 확인해서 가장 가까운 해당 요일 찾기
+    for (int daysAhead = 0; daysAhead < 7; daysAhead++) {
+      final checkDate = now.add(Duration(days: daysAhead));
+
+      if (checkDate.weekday == weekday) {
+        final scheduledDate = tz.TZDateTime(
+          tz.local,
+          checkDate.year,
+          checkDate.month,
+          checkDate.day,
+          hour,
+          minute,
+        );
+
+        // 아직 지나지 않은 시간이면 이 날짜 사용
+        if (scheduledDate.isAfter(now)) {
+          return scheduledDate;
+        }
+      }
+    }
+
+    // 이번 주에 해당 요일+시간이 모두 지났으면 다음 주로
+    var nextWeekDate = now.add(const Duration(days: 7));
+    while (nextWeekDate.weekday != weekday) {
+      nextWeekDate = nextWeekDate.subtract(const Duration(days: 1));
+    }
+
+    return tz.TZDateTime(
       tz.local,
-      now.year,
-      now.month,
-      now.day,
+      nextWeekDate.year,
+      nextWeekDate.month,
+      nextWeekDate.day,
       hour,
       minute,
     );
-
-    // 해당 요일까지 날짜 이동
-    while (scheduledDate.weekday != weekday) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    // 이미 지난 시간이면 다음 주로
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 7));
-    }
-
-    return scheduledDate;
   }
 
   /// 예약된 알림 목록 조회 (디버깅용)

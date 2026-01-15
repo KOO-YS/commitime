@@ -223,8 +223,132 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        // 알림 테스트 버튼들
+        _buildNotificationTestSection(),
       ],
     );
+  }
+
+  Widget _buildNotificationTestSection() {
+    return Column(
+      children: [
+        // 즉시 알림 테스트
+        _buildTestButton(
+          icon: Icons.notifications_active,
+          title: '즉시 알림 테스트',
+          subtitle: '탭하면 바로 알림이 옵니다',
+          onTap: _testInstantNotification,
+        ),
+        const SizedBox(height: 12),
+        // 1분 후 예약 알림 테스트
+        _buildTestButton(
+          icon: Icons.alarm,
+          title: '1분 후 예약 알림 테스트',
+          subtitle: '앱을 닫아도 1분 후 알림이 옵니다',
+          onTap: _testScheduledNotification,
+          isScheduled: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTestButton({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool isScheduled = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isScheduled
+              ? Colors.orange.withOpacity(0.1)
+              : AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isScheduled
+                ? Colors.orange.withOpacity(0.3)
+                : AppColors.primary.withOpacity(0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isScheduled ? Colors.orange : AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 12, color: AppColors.textLight),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              isScheduled ? Icons.schedule_send : Icons.send,
+              color: isScheduled ? Colors.orange : AppColors.primary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _testInstantNotification() async {
+    final notificationService = NotificationService();
+
+    await notificationService.showInstantNotification(
+      title: '🎯 Commitime 테스트',
+      body: '알림이 정상적으로 작동합니다! 목표를 향해 달려가세요!',
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('테스트 알림을 발송했습니다! 상단 알림창을 확인하세요.'),
+          backgroundColor: AppColors.primary,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _testScheduledNotification() async {
+    final notificationService = NotificationService();
+
+    await notificationService.scheduleTestNotification(
+      minutesFromNow: 1,
+      title: '⏰ 예약 알림 테스트',
+      body: '이 알림은 1분 후에 예약되었습니다. 앱을 닫아도 알림이 옵니다!',
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('1분 후 알림이 예약되었습니다! 앱을 닫고 기다려보세요.'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
   Widget _buildSettingToggle({
