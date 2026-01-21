@@ -168,7 +168,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('GOAL TYPE', style: AppTextStyles.label),
+        const Text('GOAL TYPE', style: AppTextStyles.label),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -262,7 +262,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('GOAL TITLE', style: AppTextStyles.label),
+        const Text('GOAL TITLE', style: AppTextStyles.label),
         const SizedBox(height: 12),
         TextFormField(
           controller: _titleController,
@@ -285,7 +285,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('GITHUB USERNAME', style: AppTextStyles.label),
+        const Text('GITHUB USERNAME', style: AppTextStyles.label),
         const SizedBox(height: 12),
         TextFormField(
           controller: _githubUsernameController,
@@ -324,7 +324,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('REPEAT ON', style: AppTextStyles.label),
+        const Text('REPEAT ON', style: AppTextStyles.label),
         const SizedBox(height: 12),
         Row(
           children: List.generate(7, (index) {
@@ -412,7 +412,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
           Switch(
             value: _excludeHolidays,
             onChanged: (value) => setState(() => _excludeHolidays = value),
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
           ),
         ],
       ),
@@ -423,11 +423,11 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           children: [
             Text('DEADLINE TIME', style: AppTextStyles.label),
-            const SizedBox(width: 8),
-            const Text('⏰'),
+            SizedBox(width: 8),
+            Text('⏰'),
           ],
         ),
         const SizedBox(height: 12),
@@ -470,11 +470,11 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           children: [
             Text('REMINDER BEFORE', style: AppTextStyles.label),
-            const SizedBox(width: 8),
-            const Text('🔔'),
+            SizedBox(width: 8),
+            Text('🔔'),
           ],
         ),
         const SizedBox(height: 12),
@@ -505,7 +505,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
                   Switch(
                     value: _reminderEnabled,
                     onChanged: (value) => setState(() => _reminderEnabled = value),
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                   ),
                 ],
               ),
@@ -559,10 +559,10 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           children: [
-            const Icon(Icons.people, size: 16, color: AppColors.textSecondary),
-            const SizedBox(width: 8),
+            Icon(Icons.people, size: 16, color: AppColors.textSecondary),
+            SizedBox(width: 8),
             Text('NAGGING CHARACTER', style: AppTextStyles.label),
           ],
         ),

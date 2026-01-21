@@ -81,3 +81,8 @@ coverage/
 # Environment files
 *.env
 .env.*
+
+
+.claude/
+*.assets/sounds/*
+CLAUDE.md

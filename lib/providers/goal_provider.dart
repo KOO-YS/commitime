@@ -127,11 +127,11 @@ class GoalProvider extends ChangeNotifier {
       if (index != -1) {
         _goals[index] = goal;
       }
-      
+
       // 알람 재스케줄링
-      await _notificationService.cancelGoalNotifications(goal.id);
+      await _cancelAllNotifications(goal.id);
       await _scheduleNotifications(goal);
-      
+
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -144,10 +144,10 @@ class GoalProvider extends ChangeNotifier {
     try {
       await _storageService.deleteGoal(goalId);
       _goals.removeWhere((g) => g.id == goalId);
-      
+
       // 알람 취소
-      await _notificationService.cancelGoalNotifications(goalId);
-      
+      await _cancelAllNotifications(goalId);
+
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -229,18 +229,21 @@ class GoalProvider extends ChangeNotifier {
 
   /// 알람 스케줄링
   Future<void> _scheduleNotifications(Goal goal) async {
-    // 정시 알람 스케줄
-    await _notificationService.scheduleGoalNotification(
-      goal: goal,
-      isReminder: false,
-    );
+    // 마감 시간: 풀스크린 알람 (사운드 + 전체 화면)
+    await _notificationService.scheduleFullscreenAlarm(goal: goal);
 
-    // 리마인더 알람 스케줄 (설정된 경우)
+    // 리마인더: 팝업 알림 (설정된 경우)
     if (goal.reminderEnabled) {
       await _notificationService.scheduleGoalNotification(
         goal: goal,
         isReminder: true,
       );
     }
+  }
+
+  /// 모든 알람 취소 (목표 삭제/수정 시)
+  Future<void> _cancelAllNotifications(String goalId) async {
+    await _notificationService.cancelGoalNotifications(goalId);
+    await _notificationService.cancelFullscreenAlarm(goalId);
   }
 }

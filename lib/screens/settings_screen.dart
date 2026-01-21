@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/clover_logo.dart';
 import '../services/notification_service.dart';
+import '../services/settings_service.dart';
 import '../utils/constants.dart';
 
 /// 설정 화면
@@ -14,8 +15,25 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _soundEnabled = true;
+  double _alarmVolume = 0.8;
   bool _isLoggedIn = false;
   String? _githubUsername;
+  SettingsService? _settingsService;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    _settingsService = await SettingsService.getInstance();
+    setState(() {
+      _notificationsEnabled = _settingsService!.notificationsEnabled;
+      _soundEnabled = _settingsService!.soundEnabled;
+      _alarmVolume = _settingsService!.alarmVolume;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +185,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('QUICK SETTINGS', style: AppTextStyles.label),
+        const Text('QUICK SETTINGS', style: AppTextStyles.label),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
@@ -208,8 +226,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Sound',
                 subtitle: 'Alarm sounds',
                 value: _soundEnabled,
-                onChanged: (value) => setState(() => _soundEnabled = value),
+                onChanged: (value) async {
+                  setState(() => _soundEnabled = value);
+                  await _settingsService?.setSoundEnabled(value);
+                },
               ),
+              if (_soundEnabled) ...[
+                const Divider(height: 1),
+                _buildVolumeSlider(),
+              ],
               const Divider(height: 1),
               _buildSettingToggle(
                 icon: Icons.dark_mode,
@@ -351,6 +376,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Widget _buildVolumeSlider() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              _alarmVolume == 0
+                  ? Icons.volume_off
+                  : _alarmVolume < 0.5
+                      ? Icons.volume_down
+                      : Icons.volume_up,
+              color: AppColors.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Alarm Volume',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      '${(_alarmVolume * 100).toInt()}%',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: AppColors.primary,
+                    inactiveTrackColor: AppColors.level1,
+                    thumbColor: AppColors.primary,
+                    overlayColor: AppColors.primary.withOpacity(0.2),
+                    trackHeight: 6,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 8,
+                    ),
+                  ),
+                  child: Slider(
+                    value: _alarmVolume,
+                    min: 0.0,
+                    max: 1.0,
+                    divisions: 10,
+                    onChanged: (value) {
+                      setState(() => _alarmVolume = value);
+                    },
+                    onChangeEnd: (value) async {
+                      await _settingsService?.setAlarmVolume(value);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSettingToggle({
     required IconData icon,
     required Color iconColor,
@@ -398,7 +500,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Switch(
             value: value,
             onChanged: disabled ? null : onChanged,
-            activeColor: AppColors.primary,
+            activeThumbColor: AppColors.primary,
           ),
         ],
       ),
@@ -409,7 +511,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('INTEGRATIONS', style: AppTextStyles.label),
+        const Text('INTEGRATIONS', style: AppTextStyles.label),
         const SizedBox(height: 12),
         _buildIntegrationItem(
           icon: Icons.code,
@@ -511,7 +613,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('OTHER', style: AppTextStyles.label),
+        const Text('OTHER', style: AppTextStyles.label),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(

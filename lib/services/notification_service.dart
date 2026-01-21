@@ -1,8 +1,10 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
+import 'package:alarm/alarm.dart';
 import '../models/goal.dart';
 import '../models/nagging_message.dart';
+import 'settings_service.dart';
 
 /// 로컬 알림 서비스
 class NotificationService {
@@ -128,7 +130,7 @@ class NotificationService {
         title,
         body,
         _nextInstanceOfWeekdayTime(day, notificationHour, notificationMinute),
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
             'goal_channel',
             '목표 알림',
@@ -137,7 +139,7 @@ class NotificationService {
             priority: Priority.high,
             icon: '@mipmap/ic_launcher',
           ),
-          iOS: const DarwinNotificationDetails(
+          iOS: DarwinNotificationDetails(
             presentAlert: true,
             presentBadge: true,
             presentSound: true,
@@ -274,5 +276,84 @@ class NotificationService {
   /// 예약된 알림 목록 조회 (디버깅용)
   Future<List<PendingNotificationRequest>> getPendingNotifications() async {
     return await _notifications.pendingNotificationRequests();
+  }
+
+  // ============================================
+  // 풀스크린 알람 (alarm 패키지)
+  // ============================================
+
+  /// 풀스크린 알람 스케줄 (마감 시간용)
+  Future<void> scheduleFullscreenAlarm({
+    required Goal goal,
+  }) async {
+    final timeParts = goal.deadlineTime.split(':');
+    final hour = int.parse(timeParts[0]);
+    final minute = int.parse(timeParts[1]);
+
+    // 설정에서 볼륨 가져오기
+    final settings = await SettingsService.getInstance();
+    final volume = settings.alarmVolume;
+    final soundEnabled = settings.soundEnabled;
+
+    // 각 반복 요일에 대해 알람 스케줄
+    for (final day in goal.repeatDays) {
+      final alarmId = _generateFullscreenAlarmId(goal.id, day);
+      final scheduledTime = _nextInstanceOfWeekdayTime(day, hour, minute);
+
+      // 잔소리 메시지 생성
+      final message = MessageGenerator.generate(
+        character: goal.character,
+        completedCount: 0,
+        totalCount: 1,
+        hasOverdue: false,
+      );
+
+      final alarmSettings = AlarmSettings(
+        id: alarmId,
+        dateTime: scheduledTime,
+        assetAudioPath: 'assets/sounds/alarm.mp3',
+        loopAudio: soundEnabled,
+        vibrate: true,
+        volumeSettings: soundEnabled
+            ? VolumeSettings.fade(
+                volume: volume,
+                fadeDuration: const Duration(seconds: 3),
+              )
+            : const VolumeSettings.fixed(volume: 0),
+        androidFullScreenIntent: true,
+        notificationSettings: NotificationSettings(
+          title: '🎯 ${goal.title}',
+          body: '${goal.character.emoji} ${message.text}',
+          stopButton: '확인',
+        ),
+      );
+
+      await Alarm.set(alarmSettings: alarmSettings);
+    }
+  }
+
+  /// 풀스크린 알람 취소
+  Future<void> cancelFullscreenAlarm(String goalId) async {
+    for (int day = 1; day <= 7; day++) {
+      final alarmId = _generateFullscreenAlarmId(goalId, day);
+      await Alarm.stop(alarmId);
+    }
+  }
+
+  /// 특정 알람 중지
+  Future<void> stopAlarm(int alarmId) async {
+    await Alarm.stop(alarmId);
+  }
+
+  /// 풀스크린 알람 ID 생성
+  int _generateFullscreenAlarmId(String goalId, int day) {
+    // 기존 알림 ID와 충돌 방지를 위해 다른 범위 사용
+    final hash = goalId.hashCode.abs();
+    return (hash % 100000) * 10 + day;
+  }
+
+  /// 현재 울리는 알람 목록 조회
+  Future<List<AlarmSettings>> getRingingAlarms() async {
+    return Alarm.getAlarms();
   }
 }

@@ -79,13 +79,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
+                          const Text(
                             "TODAY'S TASKS",
                             style: AppTextStyles.label,
                           ),
                           Text(
                             '${goalProvider.completedCount}/${goalProvider.totalCount} 완료',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.primary,
                               fontWeight: FontWeight.w600,
