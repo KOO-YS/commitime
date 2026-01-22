@@ -290,10 +290,10 @@ class NotificationService {
     final hour = int.parse(timeParts[0]);
     final minute = int.parse(timeParts[1]);
 
-    // 설정에서 볼륨 가져오기
+    // 목표별 볼륨 사용 (사운드가 꺼져있으면 0)
     final settings = await SettingsService.getInstance();
-    final volume = settings.alarmVolume;
     final soundEnabled = settings.soundEnabled;
+    final volume = soundEnabled ? goal.alarmVolume : 0.0;
 
     // 각 반복 요일에 대해 알람 스케줄
     for (final day in goal.repeatDays) {
@@ -312,9 +312,9 @@ class NotificationService {
         id: alarmId,
         dateTime: scheduledTime,
         assetAudioPath: 'assets/sounds/alarm.mp3',
-        loopAudio: soundEnabled,
+        loopAudio: soundEnabled && volume > 0,
         vibrate: true,
-        volumeSettings: soundEnabled
+        volumeSettings: volume > 0
             ? VolumeSettings.fade(
                 volume: volume,
                 fadeDuration: const Duration(seconds: 3),

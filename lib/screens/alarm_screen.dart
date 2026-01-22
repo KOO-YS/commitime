@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:alarm/alarm.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/goal.dart';
 import '../models/nagging_message.dart';
 import '../utils/constants.dart';
@@ -30,6 +31,9 @@ class _AlarmScreenState extends State<AlarmScreen>
   void initState() {
     super.initState();
 
+    // 화면 켜기 및 유지
+    WakelockPlus.enable();
+
     // 풀스크린 모드 설정
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
@@ -58,6 +62,8 @@ class _AlarmScreenState extends State<AlarmScreen>
   @override
   void dispose() {
     _animationController.dispose();
+    // 화면 유지 해제
+    WakelockPlus.disable();
     // 시스템 UI 복원
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,

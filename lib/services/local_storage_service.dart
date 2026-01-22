@@ -8,7 +8,7 @@ import '../models/goal_record.dart';
 class LocalStorageService {
   static Database? _database;
   static const String _dbName = 'commitime.db';
-  static const int _dbVersion = 1;
+  static const int _dbVersion = 2; // alarm_volume 필드 추가
 
   /// 데이터베이스 초기화
   Future<Database> get database async {
@@ -44,6 +44,7 @@ class LocalStorageService {
         reminder_enabled INTEGER DEFAULT 0,
         reminder_minutes_before INTEGER DEFAULT 60,
         character TEXT NOT NULL,
+        alarm_volume REAL DEFAULT 0.8,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )
@@ -73,7 +74,12 @@ class LocalStorageService {
   }
 
   Future<void> _upgradeDatabase(Database db, int oldVersion, int newVersion) async {
-    // 버전 업그레이드 로직 (필요시)
+    if (oldVersion < 2) {
+      // alarm_volume 컬럼 추가
+      await db.execute(
+        'ALTER TABLE goals ADD COLUMN alarm_volume REAL DEFAULT 0.8'
+      );
+    }
   }
 
   // ==================== Goals CRUD ====================
@@ -109,6 +115,7 @@ class LocalStorageService {
           (e) => e.name == map['character'],
           orElse: () => CharacterType.professor,
         ),
+        alarmVolume: (map['alarm_volume'] as num?)?.toDouble() ?? 0.8,
         createdAt: DateTime.parse(map['created_at'] as String),
         updatedAt: DateTime.parse(map['updated_at'] as String),
       );
@@ -132,6 +139,7 @@ class LocalStorageService {
         'reminder_enabled': goal.reminderEnabled ? 1 : 0,
         'reminder_minutes_before': goal.reminderMinutesBefore,
         'character': goal.character.name,
+        'alarm_volume': goal.alarmVolume,
         'created_at': goal.createdAt.toIso8601String(),
         'updated_at': goal.updatedAt.toIso8601String(),
       },

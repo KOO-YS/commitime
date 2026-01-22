@@ -33,6 +33,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
   bool _reminderEnabled = false;
   int _reminderMinutes = 60;
   CharacterType _selectedCharacter = CharacterType.professor;
+  double _alarmVolume = 0.8;
 
   bool _isLoading = false;
   bool _isValidatingGithub = false;
@@ -66,6 +67,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     _reminderEnabled = goal.reminderEnabled;
     _reminderMinutes = goal.reminderMinutesBefore;
     _selectedCharacter = goal.character;
+    _alarmVolume = goal.alarmVolume;
   }
 
   @override
@@ -110,6 +112,8 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
                       _buildDeadlineTimePicker(),
                       const SizedBox(height: 24),
                       _buildReminderSection(),
+                      const SizedBox(height: 24),
+                      _buildAlarmVolumeSlider(),
                       const SizedBox(height: 24),
                       _buildCharacterSelector(),
                       const SizedBox(height: 40),
@@ -555,6 +559,94 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
     );
   }
 
+  Widget _buildAlarmVolumeSlider() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.volume_up, size: 16, color: AppColors.textSecondary),
+            SizedBox(width: 8),
+            Text('ALARM VOLUME', style: AppTextStyles.label),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Icon(
+                _alarmVolume == 0
+                    ? Icons.volume_off
+                    : _alarmVolume < 0.5
+                        ? Icons.volume_down
+                        : Icons.volume_up,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '알람 볼륨',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          '${(_alarmVolume * 100).toInt()}%',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: AppColors.primary,
+                        inactiveTrackColor: AppColors.level1,
+                        thumbColor: AppColors.primary,
+                        overlayColor: AppColors.primary.withOpacity(0.2),
+                        trackHeight: 6,
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 8,
+                        ),
+                      ),
+                      child: Slider(
+                        value: _alarmVolume,
+                        min: 0.0,
+                        max: 1.0,
+                        divisions: 10,
+                        onChanged: (value) {
+                          setState(() => _alarmVolume = value);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCharacterSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -689,6 +781,7 @@ class _GoalCreationScreenState extends State<GoalCreationScreen> {
         reminderEnabled: _reminderEnabled,
         reminderMinutesBefore: _reminderMinutes,
         character: _selectedCharacter,
+        alarmVolume: _alarmVolume,
       );
 
       final provider = context.read<GoalProvider>();

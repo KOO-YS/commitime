@@ -67,6 +67,7 @@ class Goal {
   final bool reminderEnabled;
   final int reminderMinutesBefore;
   final CharacterType character;
+  final double alarmVolume; // 0.0 ~ 1.0 (목표별 알람 볼륨)
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -81,6 +82,7 @@ class Goal {
     this.reminderEnabled = false,
     this.reminderMinutesBefore = 60,
     this.character = CharacterType.professor,
+    this.alarmVolume = 0.8,
     DateTime? createdAt,
     DateTime? updatedAt,
   })  : id = id ?? const Uuid().v4(),
@@ -106,6 +108,7 @@ class Goal {
         (e) => e.name == json['character'],
         orElse: () => CharacterType.professor,
       ),
+      alarmVolume: (json['alarm_volume'] as num?)?.toDouble() ?? 0.8,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -124,6 +127,7 @@ class Goal {
       'reminder_enabled': reminderEnabled,
       'reminder_minutes_before': reminderMinutesBefore,
       'character': character.name,
+      'alarm_volume': alarmVolume,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -140,6 +144,7 @@ class Goal {
     bool? reminderEnabled,
     int? reminderMinutesBefore,
     CharacterType? character,
+    double? alarmVolume,
   }) {
     return Goal(
       id: id,
@@ -152,6 +157,7 @@ class Goal {
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
       reminderMinutesBefore: reminderMinutesBefore ?? this.reminderMinutesBefore,
       character: character ?? this.character,
+      alarmVolume: alarmVolume ?? this.alarmVolume,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );

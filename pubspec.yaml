@@ -24,6 +24,7 @@ dependencies:
 
   # Fullscreen Alarm
   alarm: ^5.1.5
+  wakelock_plus: ^1.2.8
   
   # HTTP & API
   http: ^1.1.2
