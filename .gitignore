@@ -58,12 +58,15 @@ app.*.map.json
 # macOS
 **/macos/Flutter/ephemeral/
 **/macos/Pods/
+**/macos/Runner/GeneratedPluginRegistrant.*
 
 # Windows
 **/windows/flutter/ephemeral/
+**/windows/flutter/generated_plugin_registrant.*
 
 # Linux
 **/linux/flutter/ephemeral/
+**/linux/flutter/generated_plugin_registrant.*
 
 # Web
 **/web/favicon.png
@@ -84,5 +87,5 @@ coverage/
 
 
 .claude/
-*.assets/sounds/*
 CLAUDE.md
+assets/sounds/*
